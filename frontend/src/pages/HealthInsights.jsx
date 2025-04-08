@@ -29,6 +29,10 @@ const HealthInsights = () => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [availableSymptoms, setAvailableSymptoms] = useState([]);
+  const [lungCancerImage, setLungCancerImage] = useState(null);
+  const [lungCancerPrediction, setLungCancerPrediction] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Fetch available symptoms from the backend
@@ -45,6 +49,10 @@ const HealthInsights = () => {
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
     setPrediction(null);
+    setLungCancerPrediction(null);
+    setLungCancerImage(null);
+    setImagePreview(null);
+    setError(null);
   };
 
   const handleSymptomChange = (index, value) => {
@@ -75,6 +83,7 @@ const HealthInsights = () => {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch('http://localhost:5000/disease_predict', {
         method: 'POST',
@@ -85,7 +94,7 @@ const HealthInsights = () => {
       });
       const data = await response.json();
       if (data.error) {
-        alert(data.error);
+        setError(data.error);
         return;
       }
       
@@ -109,10 +118,81 @@ const HealthInsights = () => {
       setPrediction({ ...data, predictions: modifiedPredictions });
     } catch (error) {
       console.error('Error:', error);
-      alert('Error getting prediction');
+      setError('Error getting prediction. Please try again.');
     }
     setLoading(false);
   };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Reset error state when uploading a new image
+    setError(null);
+    setLungCancerPrediction(null);
+
+    // Check for valid file types
+    const validTypes = ['image/jpeg', 'image/png', 'image/tiff', 'application/dicom'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please upload a valid medical image file (JPEG, PNG, TIFF, or DICOM)');
+      return;
+    }
+
+    // Preview image
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+
+    setLungCancerImage(file);
+  };
+
+  const handleLungCancerSubmit = async () => {
+    if (!lungCancerImage) {
+      setError('Please upload a CT scan image');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', lungCancerImage);
+
+      const response = await fetch('http://localhost:5001/predict_lung_cancer', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (response.status !== 200 || data.error) {
+        setError(data.error || 'Error processing the image');
+        setLungCancerPrediction(null);
+      } else {
+        setLungCancerPrediction(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Error connecting to the server. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  // Error message component
+  const ErrorMessage = ({ message }) => (
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-3 rounded-lg bg-red-50 border border-red-200 mt-4"
+    >
+      <p className="text-red-700 text-sm flex items-center">
+        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+        {message}
+      </p>
+    </motion.div>
+  );
 
   return (
     <motion.div
@@ -148,10 +228,11 @@ const HealthInsights = () => {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-white p-6 rounded-lg shadow-lg cursor-pointer opacity-50 transform transition-all duration-300"
+              className="bg-white p-6 rounded-lg shadow-lg cursor-pointer transform transition-all duration-300 hover:shadow-xl"
+              onClick={() => handleOptionSelect('lung')}
             >
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Lung Cancer Prediction</h2>
-              <p className="text-gray-600">Coming Soon</p>
+              <p className="text-gray-600">Analyze CT scans for potential cancer</p>
             </motion.div>
           </div>
         ) : selectedOption === 'disease' ? (
@@ -200,6 +281,8 @@ const HealthInsights = () => {
               ))}
             </div>
 
+            {error && <ErrorMessage message={error} />}
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -213,6 +296,7 @@ const HealthInsights = () => {
                   setSelectedOption(null);
                   setSymptoms(['', '', '', '', '']);
                   setPrediction(null);
+                  setError(null);
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300"
               >
@@ -282,10 +366,113 @@ const HealthInsights = () => {
               </motion.div>
             )}
           </motion.div>
+        ) : selectedOption === 'lung' ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white p-6 rounded-lg shadow-lg"
+          >
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Lung Cancer Prediction</h2>
+            
+            <div className="space-y-4">
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="lungImageUpload"
+                />
+                <label
+                  htmlFor="lungImageUpload"
+                  className="cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+                >
+                  Upload CT Scan
+                </label>
+                <p className="text-sm text-gray-500 mt-2">
+                  Please upload a valid lung CT scan image for accurate results
+                </p>
+                {imagePreview && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="mt-4 w-64 h-64 relative"
+                  >
+                    <img
+                      src={imagePreview}
+                      alt="CT Scan Preview"
+                      className="w-full h-full object-contain rounded-lg"
+                    />
+                  </motion.div>
+                )}
+              </div>
+
+              {error && <ErrorMessage message={error} />}
+
+              {lungCancerPrediction && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-6 p-4 bg-gray-50 rounded-lg"
+                >
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Prediction Results</h3>
+                  <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-200">
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium text-indigo-900">
+                        {lungCancerPrediction.prediction.replace(/_/g, ' ')}
+                      </p>
+                      <div className="flex items-center">
+                        <div className="w-24 h-2 bg-gray-200 rounded-full mr-2">
+                          <div
+                            className="h-2 rounded-full bg-indigo-600"
+                            style={{ width: `${lungCancerPrediction.confidence * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-indigo-900">
+                          {(lungCancerPrediction.confidence * 100).toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-4">
+                    Note: Prediction confidence based on image analysis
+                  </p>
+                </motion.div>
+              )}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="mt-6 flex justify-between"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleOptionSelect(null)}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300"
+              >
+                Back
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLungCancerSubmit}
+                disabled={loading || !lungCancerImage}
+                className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                  !lungCancerImage ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300`}
+              >
+                {loading ? 'Analyzing...' : 'Analyze Image'}
+              </motion.button>
+            </motion.div>
+          </motion.div>
         ) : null}
       </div>
     </motion.div>
   );
 };
 
-export default HealthInsights; 
+export default HealthInsights;
