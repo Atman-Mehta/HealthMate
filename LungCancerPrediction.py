@@ -17,7 +17,7 @@ IMAGE_SIZE = (350, 350)
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, 'HealthMate', 'models', 'Lung-cancer-prediction', 'models', 'trained_lung_cancer_model.h5')
+MODEL_PATH = os.path.join(BASE_DIR, 'models', 'Lung-cancer-prediction', 'models', 'trained_lung_cancer_model.h5')
 
 
 # Class labels (make sure these match your trained model's classes)
