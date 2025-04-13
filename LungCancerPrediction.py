@@ -14,7 +14,11 @@ CORS(app)  # Enable CORS to allow requests from your React frontend
 
 # Define constants
 IMAGE_SIZE = (350, 350)
-MODEL_PATH = 'C:/Users/Atman Mehta/HealthMate/HealthMate/models/Lung-cancer-prediction/models/trained_lung_cancer_model.h5'
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, 'HealthMate', 'models', 'Lung-cancer-prediction', 'models', 'trained_lung_cancer_model.h5')
+
 
 # Class labels (make sure these match your trained model's classes)
 class_labels = [
@@ -112,7 +116,8 @@ def train_model():
     from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
     
     # Define paths
-    base_dir = r'C:\Users\Atman Mehta\HEALTHMATE\HealthMate\static\lung_data'
+    import os
+    base_dir = os.path.join(os.getcwd(), 'static', 'lung_data')
     train_folder = os.path.join(base_dir, 'train')
     test_folder = os.path.join(base_dir, 'test')
     validate_folder = os.path.join(base_dir, 'valid')
@@ -143,7 +148,8 @@ def train_model():
     # Set up callbacks
     learning_rate_reduction = ReduceLROnPlateau(monitor='loss', patience=5, verbose=2, factor=0.5, min_lr=0.000001)
     early_stops = EarlyStopping(monitor='loss', min_delta=0, patience=6, verbose=2, mode='auto')
-    checkpointer = ModelCheckpoint(filepath='best_model.hdf5', verbose=2, save_best_only=True, save_weights_only=True)
+    checkpointer = ModelCheckpoint(filepath='best_model.h5', verbose=2, save_best_only=True, save_weights_only=False)
+
     
     # Define output size
     OUTPUT_SIZE = 4
