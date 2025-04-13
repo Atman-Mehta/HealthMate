@@ -248,4 +248,74 @@ const verifyRaazorpay =async (req,res)=>{
     }
 }
 
+import OTPModel from '../models/otpModel.js';
+import transporter from '../config/nodemailer.js';
+import { generateOTP } from '../utils/otpGenerator.js';
+// API to send OTP
+export const sendOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.json({ success: false, message: 'Email is required' });
+        }
+
+        // Generate a new OTP
+        const otp = generateOTP();
+
+        // Save OTP to the database
+        await OTPModel.create({ email, otp });
+
+        // Send OTP via email
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'HealthMate: Verify your Identity',
+            text: `Hi there,
+
+We received a login request for your account.
+
+Your One-Time Passcode (OTP) is: ${otp}
+
+This code is valid for only 5 minutes. If you didn’t request this, you can ignore this email.
+
+Thanks,
+HealthMate Team`,
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.json({ success: true, message: 'OTP sent to your email' });
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: 'Failed to send OTP' });
+    }
+};
+
+// API to verify OTP
+export const verifyOTP = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.json({ success: false, message: 'Email and OTP are required' });
+        }
+
+        // Find the OTP in the database
+        const otpRecord = await OTPModel.findOne({ email, otp });
+
+        if (!otpRecord) {
+            return res.json({ success: false, message: 'Invalid or expired OTP' });
+        }
+
+        // OTP is valid, delete it from the database
+        await OTPModel.deleteOne({ _id: otpRecord._id });
+
+        res.json({ success: true, message: 'OTP verified successfully' });
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: 'Failed to verify OTP' });
+    }
+};
+
 export {registerUser,loginUser,getProfile,updateProfile,BookAppointment,listAppointment,CancelAppointment,paymentRazorpay,verifyRaazorpay}

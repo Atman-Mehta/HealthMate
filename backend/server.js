@@ -13,14 +13,14 @@ const port=process.env.PORT ||  4000;
 connectDB()
 connectCloudinary()
 //middlewares
-app.use(express.json())
-app.use(cors())
+app.use(express.json());
+app.use(cors());
 
 
 //API endpoints 
-app.use("/api/admin",adminRouter)
-app.use('/api/doctor',doctorRouter)
-app.use('/api/user',UserRouter)
+app.use("/api/admin",adminRouter);
+app.use('/api/doctor',doctorRouter);
+app.use('/api/user',UserRouter);
 
 app.get('/',(req,res)=>{
     res.send("API working");
