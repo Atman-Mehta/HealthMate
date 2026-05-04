@@ -1,5 +1,49 @@
-I'm thrilled to announce the launch of HealthMate a Complete #MERNSTACKPROJECT Doctor Appointment booking System website using Tailwind CSS, React JS, MongoDB, Express, Node JS. Created the Frontend website , Admin Panel and Backend Server. 
-#FUllStackDevelopment. this full stack Appointment Booking System can be used by a doctor or a hospital. Because in this project we have created 3 level of authentication. 1st one is for Patients, so that patient can login on the website, book appointment with doctor and manage the booked appointment. 2nd one is doctor login, so that doctor can login and check the appointment and their earnings. Doctor can update their profile also from dashboard. 3rd one is Admin Dashboard where admin can manages the appointment and admin can also manage the doctor profile and deploy on render.
-In this full stack application We integrate the online Razorpay payment gateways so that user can pay the appointment fees online on this website
+# HealthMate — AI-Powered Healthcare Platform
 
-Admin Panel: Admin can manage website with the help of admin panel we can add the new doctor on website which are list on website and information of doctor's. Admin can manage their update they tracking Appointments so that admin get the all the information about the patients details like Name, Age, Date&Time of Bookings ,doctors, Availablity of doctors etc.
+## Overview
+Built an integrated AI healthcare platform addressing 
+the lack of accessible diagnostic tools in India. 
+Combines disease prediction, lung cancer detection 
+from medical imaging, and intelligent patient assistance 
+in one unified system.
+
+## Results
+- 87% accuracy on disease prediction
+- 82% sensitivity on lung cancer detection
+- 14,000+ medical records processed
+- IBM Watson chatbot handling 200+ patient query intents
+- Prioritized Recall/Sensitivity over accuracy — 
+  missing a sick patient is far more dangerous 
+  than a false alarm
+
+## Platform Components
+
+### 1. Disease Prediction
+- RandomForestClassifier trained on structured 
+  symptom data
+- Multi-class classification across common diseases
+- Feature importance analysis to identify key symptoms
+
+### 2. Lung Cancer Detection
+- TensorFlow CNN trained on CT scan images
+- Binary classification — malignant vs benign
+- Optimized for sensitivity — catching positive 
+  cases is critical in cancer diagnosis
+- Image preprocessing and augmentation pipeline
+
+### 3. Patient Assistant Chatbot
+- IBM Watson powered conversational agent
+- Handles 200+ patient query intents
+- Symptom checking, appointment guidance, 
+  medication reminders
+
+## Why Sensitivity Over Accuracy?
+In medical diagnosis, a false negative — missing 
+a sick patient — is far more dangerous than a 
+false positive. HealthMate specifically optimizes 
+for Recall/Sensitivity to minimize missed diagnoses, 
+even at the cost of some precision.
+
+## Tech Stack
+Python, TensorFlow, Keras, Scikit-learn, 
+IBM Watson, Pandas, NumPy, Matplotlib
